@@ -39,10 +39,12 @@ class MuxService {
     }
   }
 
-  Future<List<StreamKey>?> getLiveStream(String? basicAuth) async {
+  Future<List<StreamKey>?> getLiveStream(
+      String? basicAuth, int page, int limit) async {
     if (basicAuth != null) {
       try {
-        var url = Uri.parse('https://api.mux.com/video/v1/live-streams');
+        var url = Uri.parse(
+            'https://api.mux.com/video/v1/live-streams?page=$page&limit=$limit');
         var response = await http.get(url, headers: <String, String>{
           'Authorization': basicAuth,
           'Content-Type': 'application/json'
