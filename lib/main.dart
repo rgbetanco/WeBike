@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pizarro_app/pages/broadcast_page.dart';
 import 'package:pizarro_app/pages/email_verify_page.dart';
+import 'package:pizarro_app/pages/list_live_page.dart';
 import 'package:pizarro_app/pages/live_broadcast_page.dart';
 import 'package:pizarro_app/pages/live_page.dart';
 
@@ -66,6 +67,7 @@ class MainApp extends StatelessWidget {
               LiveOrBroadcastPage(),
           '/broadcast': (BuildContext _context) => BroadcastPage(),
           '/live': (BuildContext _context) => LivePage(),
+          '/listLive': (BuildContext _context) => ListLivePage(),
         },
       ),
     );

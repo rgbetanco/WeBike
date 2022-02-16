@@ -66,7 +66,7 @@ class _LiveOrBroadcastPageState extends State<LiveOrBroadcastPage> {
             height: _deviceHeight * 0.065,
             width: _deviceWidth * 0.65,
             onPressed: () {
-              _navigation.navigateToRoute('/live');
+              _navigation.navigateToRoute('/listLive');
             }),
         SizedBox(
           height: _deviceHeight * 0.02,

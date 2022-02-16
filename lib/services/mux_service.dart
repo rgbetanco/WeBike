@@ -1,10 +1,7 @@
 import 'dart:convert';
 
-import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:pizarro_app/models/stream_key.dart';
-import 'package:pizarro_app/providers/authentication_provider.dart';
-import 'package:pizarro_app/services/database_service.dart';
 
 class MuxService {
   late final msg;
@@ -33,6 +30,33 @@ class MuxService {
         final String streamKey = parsed["data"]["stream_key"];
         final String playbackId = parsed["data"]["playback_ids"][0]["id"];
         return StreamKey(streamKey: streamKey, playbackId: playbackId);
+      } catch (e) {
+        print(e);
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  Future<List<StreamKey>?> getLiveStream(String? basicAuth) async {
+    if (basicAuth != null) {
+      try {
+        var url = Uri.parse('https://api.mux.com/video/v1/live-streams');
+        var response = await http.get(url, headers: <String, String>{
+          'Authorization': basicAuth,
+          'Content-Type': 'application/json'
+        });
+
+        final Map parsed = json.decode(response.body);
+        final List<StreamKey> streamKeys = [];
+        for (var i = 0; i < parsed["data"].length; i++) {
+          final String streamKey = parsed["data"][i]["stream_key"];
+          final String playbackId = parsed["data"][i]["playback_ids"][0]["id"];
+          streamKeys
+              .add(StreamKey(streamKey: streamKey, playbackId: playbackId));
+        }
+        return streamKeys;
       } catch (e) {
         print(e);
         return null;
