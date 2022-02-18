@@ -91,7 +91,7 @@ class ChatsPageState extends State<ChatsPage> {
       imagePath: "https://i.pravatar.cc/150?img=28",
       isActive: true,
       isActivity: false,
-      onTap: () {},
+      onTap: (context) {},
     );
   }
 }

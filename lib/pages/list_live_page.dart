@@ -1,11 +1,19 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:pizarro_app/models/playback_id.dart';
+import 'package:pizarro_app/models/stream_key.dart';
 import 'package:pizarro_app/providers/authentication_provider.dart';
+import 'package:pizarro_app/providers/global.dart';
+import 'package:pizarro_app/services/database_service.dart';
 import 'package:pizarro_app/services/mux_service.dart';
+import 'package:pizarro_app/services/navigation_service.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/custom_list_view_tiles.dart';
 
 class ListLivePage extends StatefulWidget {
   const ListLivePage({Key? key}) : super(key: key);
@@ -17,36 +25,66 @@ class ListLivePage extends StatefulWidget {
 class _ListLiveState extends State<ListLivePage> {
   late AuthenticationProvider _auth;
   late MuxService _mux;
+  late DatabaseService _db;
+  late Global _global;
+  late NavigationService _navigation;
+
   final _baseUrl = 'https://api.mux.com/video/v1/live-streams';
 
   int _page = 0;
   int _limit = 20;
   String _status = 'active';
-
+  bool _isFirstRun = true;
   bool _hasNextPage = true;
   bool _isFirstLoadRunning = false;
   bool _isLoadMoreRunning = false;
 
+  late double _deviceHeight;
+  late double _deviceWidth;
+
   List _posts = [];
+  late List<PlaybackId>? playbackIds = [];
 
   void _firstLoad() async {
+    _isFirstRun = false;
     setState(() {
       _isFirstLoadRunning = true;
     });
 
     try {
-      final res = await http.get(
-          Uri.parse('$_baseUrl?page=$_page&limit=$_limit&status=$_status'));
-      setState(() {
-        _posts = json.decode(res.body);
-      });
+      final String? muxToken = await _db.getMuxToken();
+      if (muxToken == null) {
+        throw Exception('Mux token is null');
+      }
+      playbackIds = await _mux.getLiveStream(muxToken, _page, _limit);
+      if (playbackIds == null) {
+        print('Stream keys is null');
+      } else {
+        for (int i = 0; i < playbackIds!.length; ++i) {
+          var user = await _db.getUserFromStreamKey(playbackIds![i].playbackId);
+          playbackIds![i].userId = user![0];
+          playbackIds![i].profilePhotoUrl = user[1];
+          playbackIds![i].name = user[2];
+        }
+      }
     } catch (err) {
       print(err);
     }
-
+    _cleanUp();
     setState(() {
       _isFirstLoadRunning = false;
     });
+  }
+
+  void _cleanUp() {
+    if (playbackIds != null) {
+      for (var i = 0; i < playbackIds!.length; i++) {
+        if (playbackIds![i].name == null) {
+          playbackIds!.removeAt(i);
+          i--;
+        }
+      }
+    }
   }
 
   void _loadMore() async {
@@ -59,19 +97,31 @@ class _ListLiveState extends State<ListLivePage> {
       });
       _page += 1;
       try {
-        final res = await http.get(Uri.parse(
-            '$_baseUrl?_page=$_page&_limit=$_limit&_status=$_status'));
-        final List fetchedPosts = json.decode(res.body);
-        if (fetchedPosts[0]['data'].length > 0) {
-          setState(() {
-            _posts.addAll(fetchedPosts[0]['data']);
-          });
-        } else {
+        final String? muxToken = await _db.getMuxToken();
+        if (muxToken == null) {
+          throw Exception('Mux token is null');
+        }
+        List<PlaybackId>? playbackIdsTemp =
+            await _mux.getLiveStream(muxToken, _page, _limit);
+        if (playbackIdsTemp == null || playbackIdsTemp.isEmpty) {
           _hasNextPage = false;
+          print('Stream keys is null');
+        } else {
+          for (int i = 0; i < playbackIdsTemp.length; ++i) {
+            var user =
+                await _db.getUserFromStreamKey(playbackIdsTemp[i].playbackId);
+            playbackIdsTemp[i].userId = user![0];
+            playbackIdsTemp[i].profilePhotoUrl = user[1];
+            playbackIdsTemp[i].name = user[2];
+          }
+          setState(() {
+            playbackIds!.addAll(playbackIdsTemp);
+          });
         }
       } catch (err) {
         print(err);
       }
+      _cleanUp();
       setState(() {
         _isLoadMoreRunning = false;
       });
@@ -81,7 +131,6 @@ class _ListLiveState extends State<ListLivePage> {
   @override
   void initState() {
     super.initState();
-    _firstLoad();
     _controller = new ScrollController()..addListener(_loadMore);
   }
 
@@ -97,6 +146,15 @@ class _ListLiveState extends State<ListLivePage> {
   Widget build(BuildContext context) {
     _auth = Provider.of<AuthenticationProvider>(context);
     _mux = GetIt.instance.get<MuxService>();
+    _db = GetIt.instance.get<DatabaseService>();
+    _deviceHeight = MediaQuery.of(context).size.height;
+    _deviceWidth = MediaQuery.of(context).size.width;
+    _global = GetIt.instance.get<Global>();
+    _navigation = GetIt.instance.get<NavigationService>();
+
+    if (_isFirstRun) {
+      _firstLoad();
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('List Live'),
@@ -110,14 +168,12 @@ class _ListLiveState extends State<ListLivePage> {
                 Expanded(
                   child: ListView.builder(
                     controller: _controller,
-                    itemCount: _posts.length,
-                    itemBuilder: (_, index) => Card(
-                      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                      child: ListTile(
-                        title: Text(_posts[index]['stream_key']),
-                        subtitle: Text(_posts[index]['playback_ids'][0]['id']),
-                      ),
-                    ),
+                    itemCount: playbackIds!.length,
+                    itemBuilder: (_, index) => _chatTile(
+                        playbackIds![index].name.toString(),
+                        playbackIds![index].profilePhotoUrl.toString(),
+                        playbackIds![index].playbackId,
+                        playbackIds![index].isActive),
                   ),
                 ),
                 if (_isLoadMoreRunning == true)
@@ -134,11 +190,33 @@ class _ListLiveState extends State<ListLivePage> {
                     padding: EdgeInsets.only(top: 40, bottom: 40),
                     color: Colors.amber,
                     child: Center(
-                      child: Text('No more posts to load'),
+                      child: Text('No more posts broadcasts'),
                     ),
                   ),
               ],
             ),
+    );
+  }
+
+  Widget _chatList(
+      String title, String imageUrl, String playbackId, bool isActive) {
+    return Expanded(
+      child: _chatTile(title, imageUrl, playbackId, isActive),
+    );
+  }
+
+  Widget _chatTile(_title, _imageUrl, _playbackId, _isActive) {
+    return CustomListViewTileWithActivity(
+      height: _deviceHeight * 0.10,
+      title: _title,
+      subtitle: _playbackId,
+      imagePath: _imageUrl,
+      isActive: _isActive,
+      isActivity: false,
+      onTap: (context) {
+        _global.set(_playbackId);
+        _navigation.navigateToRoute('/live');
+      },
     );
   }
 }

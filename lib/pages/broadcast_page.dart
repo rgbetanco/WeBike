@@ -37,7 +37,7 @@ void logError(String code, String message) =>
 class _BroadcastPageState extends State<BroadcastPage>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late AuthenticationProvider _auth;
-  late CameraController? controller;
+  CameraController? controller;
   String? imagePath;
   String? videoPath;
   String? url;
@@ -48,13 +48,16 @@ class _BroadcastPageState extends State<BroadcastPage>
   String streamURL = "rtmps://global-live.mux.com:443/app/";
   bool streaming = false;
   String? cameraDirection;
+  bool isInitialized = false;
 
   Timer? _timer;
 
   @override
   void initState() {
-    _initialize();
     super.initState();
+
+    _initialize().whenComplete(() => setState(() {}));
+
     WidgetsBinding.instance!.addObserver(this);
   }
 
@@ -65,15 +68,17 @@ class _BroadcastPageState extends State<BroadcastPage>
   }
 
   Future<void> _initialize() async {
-    streaming = false;
-    cameraDirection = 'front';
-    cameras = await availableCameras();
-    controller = CameraController(cameras[1], ResolutionPreset.high);
-    await controller!.initialize();
-    if (!mounted) {
-      return;
+    if (!isInitialized) {
+      isInitialized = true;
+      streaming = false;
+      cameraDirection = 'front';
+      cameras = await availableCameras();
+      controller = CameraController(cameras[1], ResolutionPreset.high);
+      await controller!.initialize();
+      if (!mounted) {
+        return;
+      }
     }
-    setState(() {});
   }
 
   @override
@@ -172,6 +177,7 @@ class _BroadcastPageState extends State<BroadcastPage>
   @override
   Widget build(BuildContext context) {
     _auth = Provider.of<AuthenticationProvider>(context);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       resizeToAvoidBottomInset: true,
@@ -332,7 +338,7 @@ class _BroadcastPageState extends State<BroadcastPage>
           streaming = true;
         });
       }
-      if (url!.isNotEmpty) showInSnackBar('Streaming video to $url');
+      if (url!.isNotEmpty) showInSnackBar('Streaming video');
       Wakelock.enable();
     });
   }
@@ -344,7 +350,7 @@ class _BroadcastPageState extends State<BroadcastPage>
           streaming = false;
         });
       }
-      showInSnackBar('Streaming to: $url');
+      showInSnackBar('Streaming has stopped');
     });
     Wakelock.disable();
   }
@@ -427,6 +433,6 @@ class _BroadcastPageState extends State<BroadcastPage>
 
   void _showCameraException(CameraException e) {
     logError(e.code, e.description);
-    showInSnackBar('Error: ${e.code}\n${e.description}');
+    // showInSnackBar('Error: ${e.code}\n${e.description}');
   }
 }

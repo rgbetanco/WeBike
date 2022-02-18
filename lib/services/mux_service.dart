@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:pizarro_app/models/playback_id.dart';
 import 'package:pizarro_app/models/stream_key.dart';
 
 class MuxService {
@@ -39,7 +40,7 @@ class MuxService {
     }
   }
 
-  Future<List<StreamKey>?> getLiveStream(
+  Future<List<PlaybackId>?> getLiveStream(
       String? basicAuth, int page, int limit) async {
     if (basicAuth != null) {
       try {
@@ -51,12 +52,17 @@ class MuxService {
         });
 
         final Map parsed = json.decode(response.body);
-        final List<StreamKey> streamKeys = [];
+        final List<PlaybackId> streamKeys = [];
         for (var i = 0; i < parsed["data"].length; i++) {
-          final String streamKey = parsed["data"][i]["stream_key"];
+          final String userID = "";
           final String playbackId = parsed["data"][i]["playback_ids"][0]["id"];
-          streamKeys
-              .add(StreamKey(streamKey: streamKey, playbackId: playbackId));
+          final String status = parsed["data"][i]["status"];
+          bool isActive = false;
+          if (status == "active") {
+            isActive = true;
+          }
+          streamKeys.add(PlaybackId(
+              userId: userID, playbackId: playbackId, isActive: isActive));
         }
         return streamKeys;
       } catch (e) {

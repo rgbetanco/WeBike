@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:pizarro_app/providers/apple_signin_available.dart';
+import 'package:pizarro_app/providers/global.dart';
 import 'package:pizarro_app/services/mux_service.dart';
 
 //Services
@@ -82,6 +83,9 @@ class _SplashPageState extends State<SplashPage> {
     );
     GetIt.instance.registerSingleton<DatabaseService>(
       DatabaseService(),
+    );
+    GetIt.instance.registerSingleton<Global>(
+      Global(),
     );
   }
 }

@@ -53,6 +53,44 @@ class DatabaseService {
     return _db.collection(USER_COLLECTION).doc(_uid).get();
   }
 
+  Future<List?> getUserFromStreamKey(String _playbackId) async {
+    return _db
+        .collection(USER_COLLECTION)
+        .where("streamKey", isEqualTo: _playbackId)
+        .get()
+        .then((query) {
+      if (query.docs.isNotEmpty) {
+        return [
+          query.docs[0].id,
+          query.docs[0].data()["image"],
+          query.docs[0].data()["name"]
+        ];
+      } else {
+        return null;
+      }
+    });
+  }
+
+  Future<String?> getUserStreamKey(String _uid) async {
+    return _db.collection(USER_COLLECTION).doc(_uid).get().then((doc) {
+      if (doc.exists) {
+        return doc.data()!["streamKey"];
+      } else {
+        return null;
+      }
+    });
+  }
+
+  Future<String?> getUserPlaybackId(String _uid) async {
+    return _db.collection(USER_COLLECTION).doc(_uid).get().then((doc) {
+      if (doc.exists) {
+        return doc.data()!["playbackId"];
+      } else {
+        return null;
+      }
+    });
+  }
+
   Stream<QuerySnapshot> getChatsForUser(String _uid) {
     return _db
         .collection(CHAT_COLLECTION)

@@ -1,40 +1,49 @@
 {
   "project_info": {
-    "project_number": "406170180552",
-    "project_id": "pizarro-ce5b4",
-    "storage_bucket": "pizarro-ce5b4.appspot.com"
+    "project_number": "554573927618",
+    "firebase_url": "https://webike-70e5e-default-rtdb.firebaseio.com",
+    "project_id": "webike-70e5e",
+    "storage_bucket": "webike-70e5e.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:406170180552:android:5e2ab67543ae82ab20befd",
+        "mobilesdk_app_id": "1:554573927618:android:041444083953243c4f975b",
         "android_client_info": {
-          "package_name": "com.example.pizarro_app"
+          "package_name": "com.webike.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "406170180552-07v27h8pfjo1ebo4gljkfb85rt7kuk2h.apps.googleusercontent.com",
+          "client_id": "554573927618-nrtohum5qd7ps863v3ctkutb22gvfiti.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.webike.app",
+            "certificate_hash": "6208578604d9ad3501f64ce6ca4c88d8822d7703"
+          }
+        },
+        {
+          "client_id": "554573927618-fr1soho53sambnmv6cf6j5bkuslm8et7.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA_J6lVkBYdKzqNsouDjP4FvfL66ss0C_Q"
+          "current_key": "AIzaSyBV5K9vRi7dOHzSegdDg4AZMpVIadA3tgU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "406170180552-07v27h8pfjo1ebo4gljkfb85rt7kuk2h.apps.googleusercontent.com",
+              "client_id": "554573927618-fr1soho53sambnmv6cf6j5bkuslm8et7.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "406170180552-pqq5f3u1sief0tc4u4jf39cdlff09jn2.apps.googleusercontent.com",
+              "client_id": "554573927618-m42v1gakcrlms547b5nvqog1jvl5qlin.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.pizarroApp"
+                "bundle_id": "com.webike.app"
               }
             }
           ]

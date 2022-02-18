@@ -9,7 +9,7 @@ class CustomListViewTileWithActivity extends StatelessWidget {
   final String imagePath;
   final bool isActive;
   final bool isActivity;
-  final Function onTap;
+  final void Function(BuildContext) onTap;
 
   CustomListViewTileWithActivity({
     required this.height,
@@ -24,7 +24,7 @@ class CustomListViewTileWithActivity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () => onTap,
+      onTap: () => onTap(context),
       minVerticalPadding: height * 0.20,
       leading: RoundedImageNetworkWithStatusIndicator(
         key: UniqueKey(),

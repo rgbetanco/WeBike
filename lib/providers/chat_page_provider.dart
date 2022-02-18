@@ -12,7 +12,7 @@ class ChatsPageProvider extends ChangeNotifier {
 
   List<Chat>? chats;
 
-  late StreamSubscription _chatsStream;
+  //late StreamSubscription _chatsStream;
 
   ChatsPageProvider(this._auth) {
     _db = GetIt.instance.get<DatabaseService>();
@@ -21,7 +21,7 @@ class ChatsPageProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _chatsStream.cancel();
+    //_chatsStream.cancel();
     super.dispose();
   }
 
