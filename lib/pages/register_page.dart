@@ -140,7 +140,7 @@ class RegisterPageState extends State<RegisterPage> {
             CustomTextFormField(
                 onSaved: (_value) {
                   setState(() {
-                    _email = _value;
+                    _email = _value.trim();
                   });
                 },
                 regEx:
@@ -197,9 +197,18 @@ class RegisterPageState extends State<RegisterPage> {
                 }
               }
             } on FirebaseException catch (ex) {
-              print("*** $ex ***");
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Error registering user, Error: ${ex.message}"),
+                ),
+              );
             } catch (e) {
-              print("*** $e ***");
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content:
+                      Text("Error registering user, Error: ${e.toString()}"),
+                ),
+              );
             }
           }
         });
