@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_it/get_it.dart';
+import 'package:pizarro_app/models/chat_message.dart';
 import 'package:pizarro_app/models/stream_key.dart';
 import 'package:pizarro_app/services/mux_service.dart';
 
@@ -108,6 +109,29 @@ class DatabaseService {
         .get();
   }
 
+  Stream<QuerySnapshot> streamMessagesForChat(String _chatID) {
+    return _db
+        .collection(CHAT_COLLECTION)
+        .doc(_chatID)
+        .collection(MESSAGE_COLLECTION)
+        .orderBy("sent_time", descending: false)
+        .snapshots();
+  }
+
+  Future<void> addMessageToChat(String _chatID, ChatMessage _message) async {
+    try {
+      await _db
+          .collection(CHAT_COLLECTION)
+          .doc(_chatID)
+          .collection(MESSAGE_COLLECTION)
+          .add(
+            _message.toJson(),
+          );
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<void> updateUserProfileImage(String _uid, String imageURL) async {
     try {
       _db.collection(USER_COLLECTION).doc(_uid).update(
@@ -120,6 +144,15 @@ class DatabaseService {
     }
   }
 
+  Future<void> updateChatData(
+      String _chatID, Map<String, dynamic> _data) async {
+    try {
+      _db.collection(CHAT_COLLECTION).doc(_chatID).update(_data);
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<void> updateUserLastSeenTime(String _uid) async {
     try {
       _db.collection(USER_COLLECTION).doc(_uid).update({
@@ -127,6 +160,23 @@ class DatabaseService {
       });
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<void> deleteChat(String _chatID) async {
+    try {
+      _db.collection(CHAT_COLLECTION).doc(_chatID).delete();
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<DocumentReference?> createChat(Map<String, dynamic> _data) async {
+    try {
+      return await _db.collection(CHAT_COLLECTION).add(_data);
+    } catch (e) {
+      print(e);
+      return null;
     }
   }
 }

@@ -1,29 +1,110 @@
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:get_it/get_it.dart';
-import 'package:pizarro_app/models/chat.dart';
+import 'package:pizarro_app/models/chat_message.dart';
 import 'package:pizarro_app/providers/authentication_provider.dart';
+import 'package:pizarro_app/services/cloud_storage_service.dart';
 import 'package:pizarro_app/services/database_service.dart';
+import 'package:pizarro_app/services/media_service.dart';
+import 'package:pizarro_app/services/navigation_service.dart';
 
-class ChatsPageProvider extends ChangeNotifier {
-  AuthenticationProvider _auth;
+class ChatPageProvider extends ChangeNotifier {
   late DatabaseService _db;
+  late CloudStorageService _storage;
+  late MediaService _media;
+  late NavigationService _nav;
 
-  List<Chat>? chats;
+  AuthenticationProvider _auth;
+  ScrollController _messagesListViewController;
 
-  //late StreamSubscription _chatsStream;
+  String _chatId;
+  List<ChatMessage>? messages;
 
-  ChatsPageProvider(this._auth) {
+  late StreamSubscription _messagesStream;
+  late KeyboardVisibilityController _keyboardVisibilityController;
+
+  String? _message;
+
+  String get message {
+    if (_message == null) {
+      return '';
+    } else {
+      return _message!;
+    }
+  }
+
+  void set message(String value) {
+    _message = value;
+  }
+
+  ChatPageProvider(this._chatId, this._auth, this._messagesListViewController) {
     _db = GetIt.instance.get<DatabaseService>();
-    getChats();
+    _storage = GetIt.instance.get<CloudStorageService>();
+    _media = GetIt.instance.get<MediaService>();
+    _nav = GetIt.instance.get<NavigationService>();
+    _keyboardVisibilityController = KeyboardVisibilityController();
+    ListenToMessages();
   }
 
   @override
   void dispose() {
-    //_chatsStream.cancel();
+    _messagesStream.cancel();
     super.dispose();
   }
 
-  void getChats() async {}
+  void ListenToMessages() {
+    _messagesStream = _db.streamMessagesForChat(_chatId).listen((snapshot) {
+      List<ChatMessage> newMessages = snapshot.docs.map(
+        (_m) {
+          Map<String, dynamic> _messageData = _m.data() as Map<String, dynamic>;
+          return ChatMessage.fromJSON(_messageData);
+        },
+      ).toList();
+      messages = newMessages;
+      notifyListeners();
+    });
+  }
+
+  void sendTextMessage() {
+    if (_message != null) {
+      ChatMessage _messageToSend = ChatMessage(
+        content: _message!,
+        type: MessageType.TEXT,
+        senderID: _auth.user.uid,
+        sentTime: DateTime.now(),
+      );
+      _db.addMessageToChat(_chatId, _messageToSend);
+    }
+  }
+
+  void sendImageMessage() async {
+    try {
+      PlatformFile? _file = await _media.pickImageFromLibrary();
+      if (_file != null) {
+        String? _downloadURL = await _storage.saveChatImageToStorage(
+            _chatId, _auth.user.uid, _file);
+        ChatMessage _messageToSend = ChatMessage(
+          content: _downloadURL!,
+          type: MessageType.IMAGE,
+          senderID: _auth.user.uid,
+          sentTime: DateTime.now(),
+        );
+        _db.addMessageToChat(_chatId, _messageToSend);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void deleteChat() {
+    goBack();
+    _db.deleteChat(_chatId);
+  }
+
+  void goBack() {
+    _nav.goBack();
+  }
 }
