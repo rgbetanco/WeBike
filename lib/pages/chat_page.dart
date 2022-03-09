@@ -78,7 +78,9 @@ class _ChatPageState extends State<ChatPage> {
                       Icons.delete,
                       color: Color.fromRGBO(0, 82, 218, 1.0),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      _pageProvider.deleteChat();
+                    },
                   ),
                   secondaryAction: IconButton(
                     icon: const Icon(
@@ -173,7 +175,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _messageTextField() {
     return SizedBox(
-      width: _deviceWidth * 0.50,
+      width: _deviceWidth * 0.60,
       child: CustomTextFormField(
           onSaved: (_value) {
             _pageProvider.message = _value;

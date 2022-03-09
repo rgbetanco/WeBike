@@ -24,6 +24,7 @@ class ChatPageProvider extends ChangeNotifier {
   List<ChatMessage>? messages;
 
   late StreamSubscription _messagesStream;
+  late StreamSubscription _keyboardVisibilityStream;
   late KeyboardVisibilityController _keyboardVisibilityController;
 
   String? _message;
@@ -47,6 +48,7 @@ class ChatPageProvider extends ChangeNotifier {
     _nav = GetIt.instance.get<NavigationService>();
     _keyboardVisibilityController = KeyboardVisibilityController();
     ListenToMessages();
+    ListenToKeyboardChanges();
   }
 
   @override
@@ -65,6 +67,21 @@ class ChatPageProvider extends ChangeNotifier {
       ).toList();
       messages = newMessages;
       notifyListeners();
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        _messagesListViewController.jumpTo(
+          _messagesListViewController.position.maxScrollExtent,
+        );
+      });
+    });
+  }
+
+  void ListenToKeyboardChanges() {
+    _keyboardVisibilityStream =
+        _keyboardVisibilityController.onChange.listen((_changed) {
+      _db.updateChatData(
+        _chatId,
+        {"is_activity": _changed},
+      );
     });
   }
 
