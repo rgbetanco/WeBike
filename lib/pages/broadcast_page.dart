@@ -64,6 +64,12 @@ class _BroadcastPageState extends State<BroadcastPage>
   @override
   void dispose() {
     WidgetsBinding.instance!.removeObserver(this);
+    if (controller != null) {
+      controller!.dispose();
+    }
+    if (videoController != null) {
+      videoController!.dispose();
+    }
     super.dispose();
   }
 
@@ -73,7 +79,12 @@ class _BroadcastPageState extends State<BroadcastPage>
       streaming = false;
       cameraDirection = 'front';
       cameras = await availableCameras();
-      controller = CameraController(cameras[1], ResolutionPreset.high);
+      controller = CameraController(
+        cameras[1],
+        ResolutionPreset.high,
+        androidUseOpenGL: true,
+      );
+      //print(controller!.value.aspectRatio);
       await controller!.initialize();
       if (!mounted) {
         return;
@@ -302,7 +313,7 @@ class _BroadcastPageState extends State<BroadcastPage>
     }
     controller = CameraController(
       cameraDescription,
-      ResolutionPreset.medium,
+      ResolutionPreset.high,
       enableAudio: enableAudio,
       androidUseOpenGL: useOpenGL,
     );
@@ -433,6 +444,6 @@ class _BroadcastPageState extends State<BroadcastPage>
 
   void _showCameraException(CameraException e) {
     logError(e.code, e.description);
-    // showInSnackBar('Error: ${e.code}\n${e.description}');
+    showInSnackBar('Error: ${e.code}\n${e.description}');
   }
 }

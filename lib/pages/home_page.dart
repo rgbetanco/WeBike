@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:pizarro_app/pages/chats_page.dart';
+import 'package:pizarro_app/pages/gps_page.dart';
 import 'package:pizarro_app/pages/live_broadcast_page.dart';
-import 'package:pizarro_app/pages/live_page.dart';
+import 'package:pizarro_app/pages/live_page1.dart';
 import 'package:pizarro_app/pages/users_page.dart';
 
 import '../services/database_service.dart';
@@ -18,6 +19,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentPage = 0;
   final List<Widget> _pages = [
+    GpsPage(),
     ChatsPage(),
     UsersPage(),
     LiveOrBroadcastPage(),
@@ -32,6 +34,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: _pages[_currentPage],
       bottomNavigationBar: BottomNavigationBar(
+        unselectedItemColor: Colors.white54,
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentPage,
         onTap: (_index) {
           setState(() {
@@ -39,6 +43,12 @@ class _HomePageState extends State<HomePage> {
           });
         },
         items: const [
+          BottomNavigationBarItem(
+            label: "GPS",
+            icon: Icon(
+              Icons.gps_fixed,
+            ),
+          ),
           BottomNavigationBarItem(
             label: "Chats",
             icon: Icon(

@@ -152,8 +152,14 @@ class _LoginPageState extends State<LoginPage> {
           if (_loginFormKey.currentState!.validate()) {
             _loginFormKey.currentState!.save();
             // ignore: avoid_print
-            print("Email: $_email, Password: $_password ");
+            //print("Email: $_email, Password: $_password ");
             _auth.loginUsingEmailAndPassword(_email!, _password!);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Login failed, please check your credentials"),
+              ),
+            );
           }
         });
   }

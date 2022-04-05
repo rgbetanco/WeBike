@@ -45,7 +45,13 @@ class _EmailVerifyScreenState extends State<EmailVerifyScreen> {
     _navigation = GetIt.instance.get<NavigationService>();
     return const Scaffold(
       body: Center(
-        child: Text('An email has been sent to test, please verify'),
+        child: Text(
+          'An email has been sent to test, please verify',
+          style: TextStyle(
+            color: Colors.white54,
+            fontSize: 24,
+          ),
+        ),
       ),
     );
   }

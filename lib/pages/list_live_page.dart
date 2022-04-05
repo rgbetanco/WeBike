@@ -11,9 +11,11 @@ import 'package:pizarro_app/providers/global.dart';
 import 'package:pizarro_app/services/database_service.dart';
 import 'package:pizarro_app/services/mux_service.dart';
 import 'package:pizarro_app/services/navigation_service.dart';
+import 'package:pizarro_app/widgets/rounded_button.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/custom_list_view_tiles.dart';
+import '../widgets/top_bar.dart';
 
 class ListLivePage extends StatefulWidget {
   const ListLivePage({Key? key}) : super(key: key);
@@ -58,7 +60,11 @@ class _ListLiveState extends State<ListLivePage> {
       }
       playbackIds = await _mux.getLiveStream(muxToken, _page, _limit);
       if (playbackIds == null) {
-        print('Stream keys is null');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error loading live streams"),
+          ),
+        );
       } else {
         for (int i = 0; i < playbackIds!.length; ++i) {
           var user = await _db.getUserFromStreamKey(playbackIds![i].playbackId);
@@ -69,6 +75,11 @@ class _ListLiveState extends State<ListLivePage> {
       }
     } catch (err) {
       print(err);
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text(err.toString()),
+      //   ),
+      // );
     }
     _cleanUp();
     setState(() {
@@ -77,13 +88,43 @@ class _ListLiveState extends State<ListLivePage> {
   }
 
   void _cleanUp() {
+    // print(_auth.user.uid);
     if (playbackIds != null) {
       for (var i = 0; i < playbackIds!.length; i++) {
-        if (playbackIds![i].name == null) {
+        // print(playbackIds![i].userId);
+        if (playbackIds![i].name == null ||
+            playbackIds![i].name == '' ||
+            playbackIds![i].userId == _auth.user.uid) {
           playbackIds!.removeAt(i);
           i--;
         }
       }
+    }
+  }
+
+  void _updateList() async {
+    try {
+      final String? muxToken = await _db.getMuxToken();
+      if (muxToken == null) {
+        throw Exception('Mux token is null');
+      }
+      List<PlaybackId>? playbackIdsTemp =
+          await _mux.getLiveStream(muxToken, _page, _limit);
+      if (playbackIdsTemp == null || playbackIdsTemp.isEmpty) {
+        _hasNextPage = false;
+        print('Stream keys is null');
+      } else {
+        for (int i = 0; i < playbackIdsTemp.length; ++i) {
+          for (int j = 0; j < playbackIds!.length; ++j) {
+            if (playbackIdsTemp[i].playbackId == playbackIds![j].playbackId) {
+              playbackIds![j].isActive = playbackIdsTemp[i].isActive;
+            }
+          }
+        }
+        setState(() {});
+      }
+    } catch (err) {
+      print(err);
     }
   }
 
@@ -156,6 +197,119 @@ class _ListLiveState extends State<ListLivePage> {
       _firstLoad();
     }
     return Scaffold(
+      body: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: _deviceWidth * 0.03, vertical: _deviceHeight * 0.02),
+        height: _deviceHeight * 0.98,
+        width: _deviceWidth * 0.97,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TopBar(
+              'Creators',
+              fontSize: 10,
+              primaryAction: IconButton(
+                icon: Icon(
+                  Icons.logout,
+                  color: Color.fromRGBO(0, 82, 218, 1.0),
+                ),
+                onPressed: () {
+                  _auth.logout();
+                },
+              ),
+              secondaryAction: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Color.fromRGBO(0, 82, 218, 1.0),
+                ),
+                onPressed: () {
+                  _navigation.goBack();
+                },
+              ),
+            ),
+            _isFirstLoadRunning
+                ? Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            controller: _controller,
+                            itemCount: playbackIds!.length,
+                            itemBuilder: (_, index) => _chatTile(
+                                playbackIds![index].name.toString(),
+                                playbackIds![index].profilePhotoUrl.toString(),
+                                playbackIds![index].playbackId,
+                                playbackIds![index].isActive),
+                          ),
+                        ),
+                        if (_isLoadMoreRunning == true)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10, bottom: 40),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+
+                        // When nothing else to load
+                        if (_hasNextPage == false)
+                          Container(
+                            padding: EdgeInsets.only(top: 40, bottom: 40),
+                            color: Colors.amber,
+                            child: Center(
+                              child: Text('No more posts broadcasts'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+            _createUpdateButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _newW() {
+    return Builder(
+      builder: (BuildContext _context) {
+        return Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: _deviceWidth * 0.03, vertical: _deviceHeight * 0.02),
+          height: _deviceHeight * 0.98,
+          width: _deviceWidth * 0.97,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              TopBar(
+                'Live Broadcast',
+                primaryAction: IconButton(
+                  icon: Icon(
+                    Icons.logout,
+                    color: Color.fromRGBO(0, 82, 218, 1.0),
+                  ),
+                  onPressed: () {
+                    _auth.logout();
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _oldW() {
+    return Scaffold(
       appBar: AppBar(
         title: Text('List Live'),
       ),
@@ -214,9 +368,31 @@ class _ListLiveState extends State<ListLivePage> {
       isActive: _isActive,
       isActivity: false,
       onTap: (context) {
-        _global.set(_playbackId);
-        _navigation.navigateToRoute('/live');
+        if (_isActive) {
+          _global.set(_playbackId);
+          _navigation.navigateToRoute('/live');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Creator is not live, please check back later"),
+            ),
+          );
+        }
       },
+    );
+  }
+
+  Widget _createUpdateButton() {
+    return Visibility(
+      visible: true,
+      child: RoundedButton(
+        name: "Update",
+        height: _deviceHeight * 0.08,
+        width: _deviceWidth * 0.80,
+        onPressed: () {
+          _updateList();
+        },
+      ),
     );
   }
 }

@@ -57,6 +57,7 @@ class DatabaseService {
           .where("name", isGreaterThanOrEqualTo: name)
           .where("name", isLessThanOrEqualTo: name + "z");
     }
+
     return _query.get();
   }
 

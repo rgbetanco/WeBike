@@ -8,4 +8,8 @@ class Global {
   String get() {
     return playbackId;
   }
+
+  void clear() {
+    playbackId = "";
+  }
 }

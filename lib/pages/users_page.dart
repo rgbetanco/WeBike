@@ -93,21 +93,35 @@ class UsersPageState extends State<UsersPage> {
           return ListView.builder(
             itemCount: _users.length,
             itemBuilder: (BuildContext _context, int _index) {
-              return CustomListViewTile(
-                height: _deviceHeight * 0.10,
-                title: _users[_index].name,
-                subtitle: "Last Active: ${_users[_index].lastDayActive()}",
-                imagePath: _users[_index].imageURL,
-                isActive: _users[_index].wasRecentlyActive(),
-                isSelected: _pageProvider.selectedUsers.contains(
-                  _users[_index],
-                ),
-                onTap: () {
-                  _pageProvider.updateSelectedUsers(
+              if (_users[_index].uid == _auth.user.uid) {
+                return CustomListViewTile(
+                  height: _deviceHeight * 0.10,
+                  title: "me",
+                  subtitle: "Last Active: ${_users[_index].lastDayActive()}",
+                  imagePath: _users[_index].imageURL,
+                  isActive: _users[_index].wasRecentlyActive(),
+                  isSelected: _pageProvider.selectedUsers.contains(
                     _users[_index],
-                  );
-                },
-              );
+                  ),
+                  onTap: () {},
+                );
+              } else {
+                return CustomListViewTile(
+                  height: _deviceHeight * 0.10,
+                  title: _users[_index].name,
+                  subtitle: "Last Active: ${_users[_index].lastDayActive()}",
+                  imagePath: _users[_index].imageURL,
+                  isActive: _users[_index].wasRecentlyActive(),
+                  isSelected: _pageProvider.selectedUsers.contains(
+                    _users[_index],
+                  ),
+                  onTap: () {
+                    _pageProvider.updateSelectedUsers(
+                      _users[_index],
+                    );
+                  },
+                );
+              }
             },
           );
         } else {
