@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:pizarro_app/models/gps_data.dart';
 import 'package:pizarro_app/providers/authentication_provider.dart';
 import 'package:pizarro_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ class _GpsPageState extends State<GpsPage> {
   int _speed = 0;
   int _cadence = 0;
   double _distance = 0.0;
+  bool _gpsRunning = false;
 
   //location data
   late bool _serviceEnabled;
@@ -26,13 +28,34 @@ class _GpsPageState extends State<GpsPage> {
   Location _location = new Location();
   LocationData? _prevLocationData;
   LocationData? _locationData;
+  List<GpsData> _gpsDataToFirebase = [];
+  GpsData _prevGpsData = new GpsData(
+    latitude: 0.0,
+    longitude: 0.0,
+    altitude: 0.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
+    heading: 0.0,
+    accuracy: 0.0,
+    timestamp: DateTime.now(),
+  );
+  GpsData _gpsData = new GpsData(
+    latitude: 0.0,
+    longitude: 0.0,
+    altitude: 0.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
+    heading: 0.0,
+    accuracy: 0.0,
+    timestamp: DateTime.now(),
+  );
   late StreamSubscription<LocationData> _locationSubscription;
 
   @override
   void initState() {
     super.initState();
     _initializeLocation();
-    _location.changeSettings(accuracy: LocationAccuracy.high, interval: 1000);
+    _location.changeSettings(accuracy: LocationAccuracy.high, interval: 5000);
   }
 
   @override
@@ -60,50 +83,95 @@ class _GpsPageState extends State<GpsPage> {
       }
     }
 
-    _location.enableBackgroundMode(enable: true);
+    await enableBackgroundMode();
   }
 
-  void _startListeningLocation() async {
+  Future<bool> enableBackgroundMode() async {
+    bool _bgModeEnabled = await _location.isBackgroundModeEnabled();
+    if (_bgModeEnabled) {
+      return true;
+    } else {
+      try {
+        await _location.enableBackgroundMode();
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+      try {
+        _bgModeEnabled = await _location.enableBackgroundMode();
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+      print(_bgModeEnabled); //True!
+      return _bgModeEnabled;
+    }
+  }
+
+  Future<void> _startListeningLocation() async {
     try {
-      _prevLocationData ??= await _location.getLocation();
       _locationData = await _location.getLocation();
-      _locationSubscription =
-          _location.onLocationChanged.listen((LocationData data) {
-        print(data.latitude);
-        print(data.longitude);
-        print(data.accuracy);
-        print(data.altitude);
-        if (data.speed != null) {
-          setState(() {
-            _speed = data.speed!.round();
-            _distance = _calcDistance(_prevLocationData!, _locationData!, 1);
-          });
-        }
-        print(data.speedAccuracy);
-        print(data.satelliteNumber);
-        print(data.heading);
-        print(data.headingAccuracy);
-      });
+      _locationSubscription = _location.onLocationChanged.listen(
+        (LocationData data) {
+          _gpsData.latitude = data.latitude!;
+          _gpsData.longitude = data.longitude!;
+          _gpsData.altitude = data.altitude!;
+          _gpsData.speed = data.speed!;
+          _gpsData.speedAccuracy = data.speedAccuracy!;
+          _gpsData.heading = data.heading!;
+          _gpsData.accuracy = data.accuracy!;
+          _gpsData.timestamp = DateTime.now();
+          if (data.speed != null) {
+            _speed = (data.speed! * 3.6).ceil();
+          }
+          if (_prevGpsData.latitude != 0.0 && _gpsData.latitude != 0.0) {
+            _distance += _calcDistance(_prevGpsData, _gpsData, 1);
+          }
+          _gpsDataToFirebase.add(_gpsData);
+//          print(data.satelliteNumber);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "speed:" +
+                    data.speed.toString() +
+                    ", speed accuracy:" +
+                    data.speedAccuracy.toString() +
+                    ", distance:" +
+                    _distance.toString() +
+                    ", distance accuracy:" +
+                    data.accuracy.toString(),
+              ),
+            ),
+          );
+          _prevGpsData.latitude = _gpsData.latitude;
+          _prevGpsData.longitude = _gpsData.longitude;
+          _prevGpsData.altitude = data.altitude!;
+          _prevGpsData.speed = data.speed!;
+          _prevGpsData.speedAccuracy = data.speedAccuracy!;
+          _prevGpsData.heading = data.heading!;
+          _prevGpsData.accuracy = data.accuracy!;
+          _prevGpsData.timestamp = DateTime.now();
+          setState(() {});
+        },
+      );
     } catch (e) {
+      _gpsRunning = false;
       print(e);
     }
-    _prevLocationData = _locationData;
-    _locationData = null;
   }
 
-  double _calcDistance(LocationData l1, LocationData l2, int km) {
+  double _calcDistance(GpsData l1, GpsData l2, int km) {
     double PI = 3.141592653589793238;
     double constant = 3963.0;
     if (km == 1) {
-      constant = 1.609344;
+      constant = 6371;
     }
     // Convert the latitudes
     // and longitudes
     // from degree to radians.
-    double lat1 = l1.latitude! * PI / 180;
-    double long1 = l1.longitude! * PI / 180;
-    double lat2 = l2.latitude! * PI / 180;
-    double long2 = l2.longitude! * PI / 180;
+    double lat1 = l1.latitude * PI / 180;
+    double long1 = l1.longitude * PI / 180;
+    double lat2 = l2.latitude * PI / 180;
+    double long2 = l2.longitude * PI / 180;
 
     // Haversine Formula
     double dlong = long2 - long1;
@@ -159,7 +227,7 @@ class _GpsPageState extends State<GpsPage> {
             Container(
               child: Center(
                 child: Text(
-                  _distance.toString(),
+                  _distance.toStringAsFixed(1),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 65.0,
@@ -261,10 +329,19 @@ class _GpsPageState extends State<GpsPage> {
                   children: [
                     ElevatedButton(
                       child: Icon(
-                        Icons.play_arrow,
+                        _gpsRunning ? Icons.pause_sharp : Icons.play_arrow,
                         size: 50,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        if (!_gpsRunning) {
+                          _gpsRunning = true;
+                          _startListeningLocation();
+                        } else {
+                          _gpsRunning = false;
+                          _stopListeningLocation();
+                        }
+                        setState(() {});
+                      },
                       style: ElevatedButton.styleFrom(
                         primary: Colors.redAccent,
                         fixedSize: const Size(80, 80),
