@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:pizarro_app/models/gps_data.dart';
 import 'package:pizarro_app/providers/authentication_provider.dart';
+import 'package:pizarro_app/services/database_service.dart';
+import 'package:pizarro_app/services/sqlite.dart';
 import 'package:pizarro_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:location/location.dart';
@@ -16,11 +19,16 @@ class GpsPage extends StatefulWidget {
 class _GpsPageState extends State<GpsPage> {
   late double _deviceHeight;
   late double _deviceWidth;
+
   late AuthenticationProvider _auth;
+  late DatabaseService _db;
+  late SqliteDB sql;
+
   int _speed = 0;
   int _cadence = 0;
   double _distance = 0.0;
   bool _gpsRunning = false;
+  int _trackId = 0;
 
   //location data
   late bool _serviceEnabled;
@@ -30,6 +38,7 @@ class _GpsPageState extends State<GpsPage> {
   LocationData? _locationData;
   List<GpsData> _gpsDataToFirebase = [];
   GpsData _prevGpsData = new GpsData(
+    trackId: 0,
     latitude: 0.0,
     longitude: 0.0,
     altitude: 0.0,
@@ -40,6 +49,7 @@ class _GpsPageState extends State<GpsPage> {
     timestamp: DateTime.now(),
   );
   GpsData _gpsData = new GpsData(
+    trackId: 0,
     latitude: 0.0,
     longitude: 0.0,
     altitude: 0.0,
@@ -62,7 +72,6 @@ class _GpsPageState extends State<GpsPage> {
   void dispose() {
     super.dispose();
     _stopListeningLocation();
-    _locationSubscription.cancel();
   }
 
   void _initializeLocation() async {
@@ -119,15 +128,19 @@ class _GpsPageState extends State<GpsPage> {
           _gpsData.heading = data.heading!;
           _gpsData.accuracy = data.accuracy!;
           _gpsData.timestamp = DateTime.now();
-          if (data.speed != null) {
+          if (data.speed != null && data.speedAccuracy! >= 0.0) {
             _speed = (data.speed! * 3.6).ceil();
           }
           if (_prevGpsData.latitude != 0.0 && _gpsData.latitude != 0.0) {
             _distance += _calcDistance(_prevGpsData, _gpsData, 1);
+            //probably i need to add a check if accuracy is higher than certain number
+            if (_distance > 0) {
+              //add Gps Data to a sqlite database
+              sql.addGpsData(_trackId, _gpsData);
+              _gpsDataToFirebase.add(_gpsData);
+            }
           }
-          _gpsDataToFirebase.add(_gpsData);
 //          print(data.satelliteNumber);
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -187,7 +200,11 @@ class _GpsPageState extends State<GpsPage> {
   }
 
   void _stopListeningLocation() {
-    _locationSubscription.cancel();
+    try {
+      _locationSubscription.cancel();
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -195,6 +212,7 @@ class _GpsPageState extends State<GpsPage> {
     _deviceHeight = MediaQuery.of(context).size.height;
     _deviceWidth = MediaQuery.of(context).size.width;
     _auth = Provider.of<AuthenticationProvider>(context);
+    _db = GetIt.instance.get<DatabaseService>();
 
     return Scaffold(
       body: Container(
@@ -332,13 +350,40 @@ class _GpsPageState extends State<GpsPage> {
                         _gpsRunning ? Icons.pause_sharp : Icons.play_arrow,
                         size: 50,
                       ),
-                      onPressed: () {
+                      onPressed: () async {
                         if (!_gpsRunning) {
+                          //Update track number
+                          _trackId = await sql.addGpsTrack();
                           _gpsRunning = true;
                           _startListeningLocation();
                         } else {
                           _gpsRunning = false;
                           _stopListeningLocation();
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("GPS"),
+                                  content: const Text(
+                                      "Do you want to record this run?"),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text("OK"),
+                                      onPressed: () {
+                                        _db.addTrackToUser(
+                                            _auth.user.uid, _gpsDataToFirebase);
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: const Text("Cancel"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    )
+                                  ],
+                                );
+                              });
                         }
                         setState(() {});
                       },

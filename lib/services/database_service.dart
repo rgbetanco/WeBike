@@ -1,14 +1,19 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_it/get_it.dart';
 import 'package:pizarro_app/models/chat_message.dart';
+import 'package:pizarro_app/models/gps_data.dart';
 import 'package:pizarro_app/models/stream_key.dart';
 import 'package:pizarro_app/services/mux_service.dart';
+import 'package:pizarro_app/services/sqlite.dart';
 
 const String DEFAULT_PROFILE_IMAGE = "https://i.pravatar.cc/150?img=65";
 const String USER_COLLECTION = "Users";
 const String CHAT_COLLECTION = "Chats";
 const String MESSAGE_COLLECTION = "messages";
 const String MUX_COLLECTION = "Mux";
+const String GPS_COLLECTION = "GPS";
 
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -141,6 +146,32 @@ class DatabaseService {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<int> addTrackToUser(String _uid, List<GpsData> _data) async {
+    /// Initialize sq-lite
+    final db = SqliteDB();
+    //TODO: read database GPS data
+    print(await db.countTable());
+    return 1;
+    //TODO: send data to firebase
+    // try {
+    //   return await _db
+    //       .collection(USER_COLLECTION)
+    //       .doc(_uid)
+    //       .collection(GPS_COLLECTION)
+    //       .add({"data": jsonEncode(_data)});
+    // } catch (e) {
+    //   print(e);
+    // }
+  }
+
+  Future<QuerySnapshot> getTrackOfUser(String _uid) async {
+    return await _db
+        .collection(USER_COLLECTION)
+        .doc(_uid)
+        .collection(GPS_COLLECTION)
+        .get();
   }
 
   Future<void> updateUserProfileImage(String _uid, String imageURL) async {

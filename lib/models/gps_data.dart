@@ -1,5 +1,6 @@
 class GpsData {
   GpsData({
+    required this.trackId,
     required this.latitude,
     required this.longitude,
     required this.altitude,
@@ -10,6 +11,7 @@ class GpsData {
     required this.timestamp,
   });
 
+  int trackId;
   double latitude;
   double longitude;
   double altitude;
@@ -20,6 +22,7 @@ class GpsData {
   DateTime timestamp;
 
   factory GpsData.fromJson(Map<String, dynamic> json) => GpsData(
+        trackId: json["trackId"],
         latitude: json["latitude"].toDouble(),
         longitude: json["longitude"].toDouble(),
         altitude: json["altitude"].toDouble(),
@@ -31,6 +34,7 @@ class GpsData {
       );
 
   Map<String, dynamic> toJson() => {
+        "trackId": trackId,
         "latitude": latitude,
         "longitude": longitude,
         "altitude": altitude,
