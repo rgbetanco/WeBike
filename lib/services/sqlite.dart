@@ -56,6 +56,14 @@ class SqliteDB {
 
   Future addGpsData(int trackId, GpsData data) async {
     var dbClient = await db;
+    await dbClient!.insert(GpsDataFields.gpsDataTable, data.toJson());
+  }
+
+  Future<List<GpsData>> getGpsData(int trackId) async {
+    var dbClient = await db;
+    final result = await dbClient!.query(GpsDataFields.gpsDataTable,
+        where: "$GpsDataFields.columnTrackId = ?", whereArgs: [trackId]);
+    return result.map((cursor) => GpsData.fromJson(cursor)).toList();
   }
 
   Future<int> addTrack() async {

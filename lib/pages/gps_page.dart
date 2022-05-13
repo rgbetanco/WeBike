@@ -137,7 +137,7 @@ class _GpsPageState extends State<GpsPage> {
             if (_distance > 0) {
               //add Gps Data to a sqlite database
               sql.addGpsData(_trackId, _gpsData);
-              _gpsDataToFirebase.add(_gpsData);
+              //_gpsDataToFirebase.add(_gpsData);
             }
           }
 //          print(data.satelliteNumber);
@@ -353,7 +353,7 @@ class _GpsPageState extends State<GpsPage> {
                       onPressed: () async {
                         if (!_gpsRunning) {
                           //Update track number
-                          _trackId = await sql.addGpsTrack();
+                          _trackId = await sql.addTrack();
                           _gpsRunning = true;
                           _startListeningLocation();
                         } else {
@@ -370,8 +370,9 @@ class _GpsPageState extends State<GpsPage> {
                                     TextButton(
                                       child: const Text("OK"),
                                       onPressed: () {
-                                        _db.addTrackToUser(
-                                            _auth.user.uid, _gpsDataToFirebase);
+                                        //TODO: Delete track from database
+                                        // _db.addTrackToUser(
+                                        //     _auth.user.uid, _gpsDataToFirebase);
                                         Navigator.of(context).pop();
                                       },
                                     ),
