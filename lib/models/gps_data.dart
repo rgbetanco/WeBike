@@ -34,12 +34,12 @@ class GpsData {
       );
 
   Map<String, dynamic> toJson() => {
-        "trackId": trackId,
+        "track_id": trackId,
         "latitude": latitude,
         "longitude": longitude,
         "altitude": altitude,
         "speed": speed,
-        "speedAccuracy": speedAccuracy,
+        "speed_accuracy": speedAccuracy,
         "heading": heading,
         "accuracy": accuracy,
         "timestamp": timestamp.toIso8601String(),

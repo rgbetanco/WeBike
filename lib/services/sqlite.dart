@@ -14,7 +14,9 @@ class SqliteDB {
   static const String doubleType = "DOUBLE";
 
   factory SqliteDB() => _instance;
-  static late Database _db;
+  static Database? _db;
+
+  SqliteDB.internal();
 
   Future<Database?> get db async {
     try {
@@ -27,8 +29,6 @@ class SqliteDB {
       print(e);
     }
   }
-
-  SqliteDB.internal();
 
   /// Initialize DB
   initDb() async {
@@ -46,9 +46,9 @@ class SqliteDB {
       await db.execute('DROP TABLE IF EXISTS gps_master');
       await db.execute('DROP TABLE IF EXISTS gps_detail');
       await db.execute(
-          'CREATE TABLE $TrackFields.trackTable ($TrackFields.columnId $columnIdType, $TrackFields.columnTrackCreated $dateTimeType)');
+          'CREATE TABLE ${TrackFields.trackTable} (${TrackFields.columnId} $columnIdType, ${TrackFields.columnTrackCreated} $dateTimeType)');
       await db.execute(
-        'CREATE TABLE $GpsDataFields.gpsDataTable ($GpsDataFields.columnId $columnIdType, $GpsDataFields.columnTrackId $integerType, $GpsDataFields.columnLatitude $doubleType, $GpsDataFields.columnLongitude $doubleType, $GpsDataFields.columnAltitude $doubleType, $GpsDataFields.columnSpeed $doubleType, $GpsDataFields.columnSpeedAccuracy $doubleType, $GpsDataFields.columnHeading $doubleType, $GpsDataFields.columnAccuracy $doubleType, $GpsDataFields.columnTimestamp $dateTimeType)',
+        'CREATE TABLE ${GpsDataFields.gpsDataTable} (${GpsDataFields.columnId} $columnIdType, ${GpsDataFields.columnTrackId} $integerType, ${GpsDataFields.columnLatitude} $doubleType, ${GpsDataFields.columnLongitude} $doubleType, ${GpsDataFields.columnAltitude} $doubleType, ${GpsDataFields.columnSpeed} $doubleType, ${GpsDataFields.columnSpeedAccuracy} $doubleType, ${GpsDataFields.columnHeading} $doubleType, ${GpsDataFields.columnAccuracy} $doubleType, ${GpsDataFields.columnTimestamp} $dateTimeType)',
       );
     });
     return taskDb;
@@ -62,7 +62,7 @@ class SqliteDB {
   Future<List<GpsData>> getGpsData(int trackId) async {
     var dbClient = await db;
     final result = await dbClient!.query(GpsDataFields.gpsDataTable,
-        where: "$GpsDataFields.columnTrackId = ?", whereArgs: [trackId]);
+        where: "${GpsDataFields.columnTrackId} = ?", whereArgs: [trackId]);
     return result.map((cursor) => GpsData.fromJson(cursor)).toList();
   }
 
@@ -71,7 +71,7 @@ class SqliteDB {
     var dateTime = DateTime.now();
     //add gps track
     int lastInsertedId = await dbClient!.rawInsert(
-        'INSERT INTO $TrackFields.trackTable ($TrackFields.columnTrackCreated) VALUES (?)',
+        'INSERT INTO ${TrackFields.trackTable} (${TrackFields.columnTrackCreated}) VALUES (?)',
         [dateTime.toIso8601String()]);
     return lastInsertedId;
   }
@@ -89,7 +89,7 @@ class SqliteDB {
     db!.close();
   }
 
-  /// Count number of tables in DB
+  // Count number of tables in DB
   Future countTable() async {
     var dbClient = await db;
     var res = await dbClient!.rawQuery("""SELECT * FROM track;""");

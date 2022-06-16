@@ -6,8 +6,11 @@ import 'package:pizarro_app/models/gps_data.dart';
 import 'package:pizarro_app/providers/authentication_provider.dart';
 import 'package:pizarro_app/services/database_service.dart';
 import 'package:pizarro_app/services/navigation_service.dart';
+import 'package:pizarro_app/services/sqlite.dart';
 import 'package:pizarro_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
+
+import '../models/track.dart';
 
 class GpsListPage extends StatefulWidget {
   @override
@@ -23,8 +26,10 @@ class GpsListPageState extends State<GpsListPage> {
   late DatabaseService _db;
   late NavigationService _nav;
   List<GpsData>? _gpsData;
+  List<Track>? _tracks;
+  late SqliteDB _sql;
 
-  void getGpsData() async {
+  void getGpsDataFromFirebase() async {
     try {
       _db.getTrackOfUser(_auth.user.uid).then(
         (_snapshot) async {
@@ -46,15 +51,25 @@ class GpsListPageState extends State<GpsListPage> {
     }
   }
 
+  void getTracks() async {
+    _tracks = await _sql.getTracks();
+  }
+
+  @override
+  void initState() async {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     _deviceHeight = MediaQuery.of(context).size.height;
     _deviceWidth = MediaQuery.of(context).size.width;
     _auth = Provider.of<AuthenticationProvider>(context);
     _db = GetIt.instance.get<DatabaseService>();
+    _sql = GetIt.instance.get<SqliteDB>();
     _nav = GetIt.instance.get<NavigationService>();
 
-    getGpsData();
+    getTracks();
 
     return Scaffold(
       body: Container(
@@ -92,13 +107,13 @@ class GpsListPageState extends State<GpsListPage> {
                     elevation: 5,
                     child: ListTile(
                       title: Text(
-                        '${_gpsData![index].latitude}',
+                        _tracks![index].created,
                         style: TextStyle(
                           fontSize: _deviceHeight * 0.02,
                         ),
                       ),
                       subtitle: Text(
-                        '${_gpsData![index].longitude}',
+                        '${_tracks![index].id}',
                         style: TextStyle(
                           fontSize: _deviceHeight * 0.02,
                         ),

@@ -22,7 +22,7 @@ class _GpsPageState extends State<GpsPage> {
 
   late AuthenticationProvider _auth;
   late DatabaseService _db;
-  late SqliteDB sql;
+  late SqliteDB _sql;
 
   int _speed = 0;
   int _cadence = 0;
@@ -136,7 +136,7 @@ class _GpsPageState extends State<GpsPage> {
             //probably i need to add a check if accuracy is higher than certain number
             if (_distance > 0) {
               //add Gps Data to a sqlite database
-              sql.addGpsData(_trackId, _gpsData);
+              _sql.addGpsData(_trackId, _gpsData);
               //_gpsDataToFirebase.add(_gpsData);
             }
           }
@@ -213,6 +213,7 @@ class _GpsPageState extends State<GpsPage> {
     _deviceWidth = MediaQuery.of(context).size.width;
     _auth = Provider.of<AuthenticationProvider>(context);
     _db = GetIt.instance.get<DatabaseService>();
+    _sql = GetIt.instance.get<SqliteDB>();
 
     return Scaffold(
       body: Container(
@@ -353,7 +354,7 @@ class _GpsPageState extends State<GpsPage> {
                       onPressed: () async {
                         if (!_gpsRunning) {
                           //Update track number
-                          _trackId = await sql.addTrack();
+                          _trackId = await _sql.addTrack();
                           _gpsRunning = true;
                           _startListeningLocation();
                         } else {

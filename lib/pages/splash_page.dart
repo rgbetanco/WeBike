@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:pizarro_app/providers/apple_signin_available.dart';
 import 'package:pizarro_app/providers/global.dart';
 import 'package:pizarro_app/services/mux_service.dart';
+import 'package:pizarro_app/services/sqlite.dart';
 
 //Services
 import '../services/navigation_service.dart';
@@ -86,6 +87,9 @@ class _SplashPageState extends State<SplashPage> {
     );
     GetIt.instance.registerSingleton<Global>(
       Global(),
+    );
+    GetIt.instance.registerSingleton<SqliteDB>(
+      SqliteDB(),
     );
   }
 }
