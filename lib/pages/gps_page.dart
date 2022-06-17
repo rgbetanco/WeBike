@@ -363,6 +363,7 @@ class _GpsPageState extends State<GpsPage> {
                           showDialog(
                               context: context,
                               builder: (BuildContext context) {
+                                //TODO: check if there are gps data available for that track
                                 return AlertDialog(
                                   title: const Text("GPS"),
                                   content: const Text(

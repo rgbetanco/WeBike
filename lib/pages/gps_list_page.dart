@@ -51,13 +51,9 @@ class GpsListPageState extends State<GpsListPage> {
     }
   }
 
-  void getTracks() async {
+  Future<List<Track>?> getTracks() async {
     _tracks = await _sql.getTracks();
-  }
-
-  @override
-  void initState() async {
-    super.initState();
+    return _tracks;
   }
 
   @override
@@ -68,8 +64,6 @@ class GpsListPageState extends State<GpsListPage> {
     _db = GetIt.instance.get<DatabaseService>();
     _sql = GetIt.instance.get<SqliteDB>();
     _nav = GetIt.instance.get<NavigationService>();
-
-    getTracks();
 
     return Scaffold(
       body: Container(
@@ -85,7 +79,7 @@ class GpsListPageState extends State<GpsListPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             TopBar(
-              'REC',
+              'Tracks',
               primaryAction: IconButton(
                 icon: const Icon(
                   Icons.logout,
@@ -96,37 +90,49 @@ class GpsListPageState extends State<GpsListPage> {
                 },
               ),
             ),
-            ListView.builder(
-              physics: ScrollPhysics(parent: null),
-              shrinkWrap: true,
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  height: _deviceHeight * 0.1,
-                  width: _deviceWidth * 0.97,
-                  child: Card(
-                    elevation: 5,
-                    child: ListTile(
-                      title: Text(
-                        _tracks![index].created,
-                        style: TextStyle(
-                          fontSize: _deviceHeight * 0.02,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${_tracks![index].id}',
-                        style: TextStyle(
-                          fontSize: _deviceHeight * 0.02,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-              itemCount: _gpsData?.length ?? 0,
-            ),
+            Container(
+              child: _listTracks(),
+            )
           ],
         ),
       ),
+    );
+  }
+
+  Widget _listTracks() {
+    return FutureBuilder<List<Track>?>(
+      future: getTracks(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        return ListView(
+          scrollDirection: Axis.vertical,
+          shrinkWrap: true,
+          children: snapshot.data!
+              .map((track) => ListTile(
+                    title: Text(
+                        track.created.substring(0, 10) +
+                            ' [' +
+                            track.created.substring(11, 16) +
+                            ']',
+                        style: const TextStyle(color: Colors.white)),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.black,
+                      child: Text(
+                        track.id.toString(),
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    ),
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 }
