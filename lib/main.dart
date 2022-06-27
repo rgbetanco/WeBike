@@ -55,7 +55,7 @@ class MainApp extends StatelessWidget {
         )
       ],
       child: MaterialApp(
-        title: 'WeBike',
+        title: 'BuildToRun',
         theme: ThemeData(
           backgroundColor: const Color.fromRGBO(36, 35, 49, 1.0),
           scaffoldBackgroundColor: const Color.fromRGBO(36, 35, 49, 1.0),

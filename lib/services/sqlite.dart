@@ -36,11 +36,11 @@ class SqliteDB {
     print(documentDirectory);
     String path = join(documentDirectory.path, "webike.db");
     var taskDb =
-        await openDatabase(path, version: 2, onCreate: (db, version) async {
+        await openDatabase(path, version: 1, onCreate: (db, version) async {
       await db.execute(
-          'CREATE TABLE gps_master(id INTEGER PRIMARY KEY AUTOINCREMENT, created DATETIME)');
+          'CREATE TABLE ${TrackFields.trackTable} (${TrackFields.columnId} $columnIdType, ${TrackFields.columnTrackCreated} $dateTimeType)');
       await db.execute(
-        'CREATE TABLE gps_detail(id INTEGER PRIMARY KEY AUTOINCREMENT, gps_master_id INTEGER, latitude DOUBLE, longitude DOUBLE, altitude DOUBLE, speed DOUBLE, speedAccuracy DOUBLE, heading DOUBLE, accuracy DOUBLE, timestamp DATETIME)',
+        'CREATE TABLE ${GpsDataFields.gpsDataTable} (${GpsDataFields.columnId} $columnIdType, ${GpsDataFields.columnTrackId} $integerType, ${GpsDataFields.columnLatitude} $doubleType, ${GpsDataFields.columnLongitude} $doubleType, ${GpsDataFields.columnAltitude} $doubleType, ${GpsDataFields.columnSpeed} $doubleType, ${GpsDataFields.columnSpeedAccuracy} $doubleType, ${GpsDataFields.columnHeading} $doubleType, ${GpsDataFields.columnAccuracy} $doubleType, ${GpsDataFields.columnTimestamp} $dateTimeType)',
       );
     }, onUpgrade: (db, oldVersion, newVersion) async {
       await db.execute('DROP TABLE IF EXISTS gps_master');

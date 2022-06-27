@@ -75,19 +75,20 @@ class _GpsPageState extends State<GpsPage> {
   }
 
   void _initializeLocation() async {
+    // _permissionGranted = await _location.hasPermission();
+    // if (_permissionGranted == PermissionStatus.denied) {
+    //   _permissionGranted = await _location.requestPermission();
+    //   if (_permissionGranted != PermissionStatus.granted) {
+    //     print("Location permission denied");
+    //     return;
+    //   }
+    // }
+
     _serviceEnabled = await _location.serviceEnabled();
     if (!_serviceEnabled) {
       _serviceEnabled = await _location.requestService();
       if (!_serviceEnabled) {
         print("Location service is not enabled");
-        return;
-      }
-    }
-    _permissionGranted = await _location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await _location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        print("Location permission denied");
         return;
       }
     }
