@@ -27,6 +27,21 @@ class CloudStorageService {
     }
   }
 
+  Future<String?> saveTripProfileImageToStorage(
+      String _uid, PlatformFile _file) async {
+    try {
+      Reference _ref =
+          _storage.ref().child("images/trip/$_uid/profile.${_file.extension}");
+      UploadTask _task = _ref.putFile(
+        File(_file.path!),
+      );
+      return await _task.then((result) => result.ref.getDownloadURL());
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
+  }
+
   Future<String?> saveChatImageToStorage(
       String _chatID, String _userID, PlatformFile _file) async {
     try {

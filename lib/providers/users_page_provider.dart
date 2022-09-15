@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:pizarro_app/models/chat.dart';
 import 'package:pizarro_app/models/chat_user.dart';
+import 'package:pizarro_app/models/trip.dart';
 import 'package:pizarro_app/pages/chat_page.dart';
 import 'package:pizarro_app/providers/authentication_provider.dart';
 import 'package:pizarro_app/services/database_service.dart';
 import 'package:pizarro_app/services/navigation_service.dart';
+
+import '../pages/live_location.dart';
+import '../pages/trips_page.dart';
 
 class UsersPageProvider extends ChangeNotifier {
   AuthenticationProvider _auth;
@@ -104,6 +108,42 @@ class UsersPageProvider extends ChangeNotifier {
       _navigation.navigateToPage(_chatPage);
     } catch (e) {
       print("Error creating chat.");
+      print(e);
+    }
+  }
+
+  void createTrip() async {
+    try {
+      //Create Trip
+      List<String> _membersIds =
+          _selectedUsers.map((_user) => _user.uid).toList();
+      _membersIds.add(_auth.user.uid);
+      bool _isGroup = _selectedUsers.length > 1;
+      DocumentReference? _doc = await _database.createTrip(
+        {
+          "title": "Undefined",
+          "members": _membersIds,
+        },
+      );
+      //Navigate To Chat Page
+      List<ChatUser> _members = [];
+      for (var _uid in _membersIds) {
+        DocumentSnapshot _userSnapshot = await _database.getUser(_uid);
+        Map<String, dynamic> _userData =
+            _userSnapshot.data() as Map<String, dynamic>;
+        _userData["uid"] = _userSnapshot.id;
+        _members.add(
+          ChatUser.fromJSON(
+            _userData,
+          ),
+        );
+      }
+      TripsPage _tripPage = TripsPage();
+      _selectedUsers = [];
+      notifyListeners();
+      _navigation.navigateToPage(_tripPage);
+    } catch (e) {
+      print("Error creating trip.");
       print(e);
     }
   }

@@ -8,9 +8,15 @@ import 'package:pizarro_app/models/stream_key.dart';
 import 'package:pizarro_app/services/mux_service.dart';
 import 'package:pizarro_app/services/sqlite.dart';
 
+import '../models/trip.dart';
+import '../models/trip_location.dart';
+
 const String DEFAULT_PROFILE_IMAGE = "https://i.pravatar.cc/150?img=65";
+const String DEFAULT_TRIP_IMAGE = "https://i.pravatar.cc/150?img=65";
 const String USER_COLLECTION = "Users";
 const String CHAT_COLLECTION = "Chats";
+const String TRIP_COLLECTION = "Trips";
+const String LOCATION_COLLECTION = "Locations";
 const String MESSAGE_COLLECTION = "messages";
 const String MUX_COLLECTION = "Mux";
 const String GPS_COLLECTION = "GPS";
@@ -115,11 +121,28 @@ class DatabaseService {
         .snapshots();
   }
 
+  Stream<QuerySnapshot> getTripsForUser(String _uid) {
+    return _db
+        .collection(TRIP_COLLECTION)
+        .where('members', arrayContains: _uid)
+        .snapshots();
+  }
+
   Future<QuerySnapshot> getLastMessageForChat(String _chatID) {
     return _db
         .collection(CHAT_COLLECTION)
         .doc(_chatID)
         .collection(MESSAGE_COLLECTION)
+        .orderBy("sent_time", descending: true)
+        .limit(1)
+        .get();
+  }
+
+  Future<QuerySnapshot> getLastLocationForTrip(String _tripID) {
+    return _db
+        .collection(TRIP_COLLECTION)
+        .doc(_tripID)
+        .collection(LOCATION_COLLECTION)
         .orderBy("sent_time", descending: true)
         .limit(1)
         .get();
@@ -148,6 +171,21 @@ class DatabaseService {
     }
   }
 
+  Future<void> addLocationToTrip(String _tripID, TripLocation _message) async {
+    try {
+      await _db
+          .collection(TRIP_COLLECTION)
+          .doc(_tripID)
+          .collection(LOCATION_COLLECTION)
+          .add(
+            _message.toJson(),
+          );
+    } catch (e) {
+      print(e);
+    }
+  }
+
+//no need
   Future<int> addTrackToUser(String _uid, List<GpsData> _data) async {
     /// Initialize sq-lite
     final db = SqliteDB();
@@ -172,6 +210,19 @@ class DatabaseService {
         .doc(_uid)
         .collection(GPS_COLLECTION)
         .get();
+  }
+
+  Future<void> updateTrip(Trip _trip) async {
+    try {
+      _db.collection(TRIP_COLLECTION).doc(_trip.uid).update(
+        {
+          "title": _trip.title,
+          "imageURL": _trip.imageURL,
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> updateUserProfileImage(String _uid, String imageURL) async {
@@ -216,6 +267,15 @@ class DatabaseService {
   Future<DocumentReference?> createChat(Map<String, dynamic> _data) async {
     try {
       return await _db.collection(CHAT_COLLECTION).add(_data);
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  Future<DocumentReference?> createTrip(Map<String, dynamic> _data) async {
+    try {
+      return await _db.collection(TRIP_COLLECTION).add(_data);
     } catch (e) {
       print(e);
       return null;

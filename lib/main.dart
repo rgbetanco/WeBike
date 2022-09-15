@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pizarro_app/pages/broadcast_page.dart';
 import 'package:pizarro_app/pages/email_verify_page.dart';
 import 'package:pizarro_app/pages/gps_layout_page.dart';
 import 'package:pizarro_app/pages/gps_list_page.dart';
 import 'package:pizarro_app/pages/gps_page.dart';
-import 'package:pizarro_app/pages/list_live_page.dart';
-import 'package:pizarro_app/pages/live_broadcast_page.dart';
-import 'package:pizarro_app/pages/live_page.dart';
-//import 'package:pizarro_app/pages/live_page1.dart';
 
 //Packages
 //import 'package:firebase_analytics/firebase_analytics.dart';
@@ -71,14 +66,9 @@ class MainApp extends StatelessWidget {
           '/register': (BuildContext _context) => RegisterPage(),
           '/resetPassword': (BuildContext _context) => ResetPasswordPage(),
           '/home': (BuildContext _context) => HomePage(),
-          '/liveOrBroadcastPage': (BuildContext _context) =>
-              LiveOrBroadcastPage(),
-          '/broadcast': (BuildContext _context) => BroadcastPage(),
-          '/live': (BuildContext _context) => LivePage(),
-          '/listLive': (BuildContext _context) => ListLivePage(),
           '/gps': (BuildContext _context) => GpsPage(),
           '/gpsLayout': (BuildContext _context) => GpsLayoutPage(),
-          'gpsListPage': (BuildContext _context) => GpsListPage(),
+          '/gpsListPage': (BuildContext _context) => GpsListPage(),
         },
       ),
     );

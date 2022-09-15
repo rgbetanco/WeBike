@@ -46,8 +46,6 @@ class UsersPageState extends State<UsersPage> {
     return Builder(builder: (BuildContext _context) {
       _pageProvider = _context.watch<UsersPageProvider>();
       return Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: _deviceWidth * 0.03, vertical: _deviceHeight * 0.02),
         height: _deviceHeight * 0.98,
         width: _deviceWidth * 0.97,
         child: Column(
@@ -79,6 +77,13 @@ class UsersPageState extends State<UsersPage> {
             ),
             _usersList(),
             _createChatButton(),
+            SizedBox(
+              height: _deviceHeight * 0.02,
+            ),
+            _createTripButton(),
+            SizedBox(
+              height: _deviceHeight * 0.05,
+            ),
           ],
         ),
       );
@@ -151,10 +156,26 @@ class UsersPageState extends State<UsersPage> {
         name: _pageProvider.selectedUsers.length == 1
             ? "Chat With ${_pageProvider.selectedUsers.first.name}"
             : "Create Group Chat",
-        height: _deviceHeight * 0.08,
-        width: _deviceWidth * 0.80,
+        height: _deviceHeight * 0.05,
+        width: _deviceWidth * 0.60,
         onPressed: () {
           _pageProvider.createChat();
+        },
+      ),
+    );
+  }
+
+  Widget _createTripButton() {
+    return Visibility(
+      visible: _pageProvider.selectedUsers.isNotEmpty,
+      child: RoundedButton(
+        name: _pageProvider.selectedUsers.length == 1
+            ? "Travel With ${_pageProvider.selectedUsers.first.name}"
+            : "Create Group Trip",
+        height: _deviceHeight * 0.05,
+        width: _deviceWidth * 0.60,
+        onPressed: () {
+          _pageProvider.createTrip();
         },
       ),
     );

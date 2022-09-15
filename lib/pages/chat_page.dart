@@ -60,10 +60,6 @@ class _ChatPageState extends State<ChatPage> {
       return Scaffold(
         body: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: _deviceWidth * 0.03,
-              vertical: _deviceHeight * 0.02,
-            ),
             height: _deviceHeight,
             width: _deviceWidth * 0.97,
             child: Column(
@@ -178,12 +174,13 @@ class _ChatPageState extends State<ChatPage> {
     return SizedBox(
       width: _deviceWidth * 0.60,
       child: CustomTextFormField(
-          onSaved: (_value) {
-            _pageProvider.message = _value;
-          },
-          regEx: r"^(?!\s*$).+",
-          hintText: "Type a message",
-          obscureText: false),
+        onSaved: (_value) {
+          _pageProvider.message = _value;
+        },
+        regEx: r"^(?!\s*$).+",
+        hintText: "Type a message",
+        obscureText: false,
+      ),
     );
   }
 
@@ -223,7 +220,9 @@ class _ChatPageState extends State<ChatPage> {
         onPressed: () {
           _pageProvider.sendImageMessage();
         },
-        child: Icon(Icons.camera_enhance),
+        child: Icon(
+          Icons.camera_enhance,
+        ),
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:location/location.dart';
 import 'dart:math';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
+import 'package:pizarro_app/services/navigation_service.dart';
 
 class GpsPage extends StatefulWidget {
   @override
@@ -22,6 +23,7 @@ class _GpsPageState extends State<GpsPage> {
 
   late AuthenticationProvider _auth;
   late DatabaseService _db;
+  late NavigationService _navigation;
   late SqliteDB _sql;
 
   int _speed = 0;
@@ -214,14 +216,11 @@ class _GpsPageState extends State<GpsPage> {
     _deviceWidth = MediaQuery.of(context).size.width;
     _auth = Provider.of<AuthenticationProvider>(context);
     _db = GetIt.instance.get<DatabaseService>();
+    _navigation = GetIt.instance.get<NavigationService>();
     _sql = GetIt.instance.get<SqliteDB>();
 
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: _deviceWidth * 0.03,
-          vertical: _deviceHeight * 0.02,
-        ),
         height: _deviceHeight * 0.98,
         width: _deviceWidth * 0.97,
         child: Column(
@@ -397,6 +396,15 @@ class _GpsPageState extends State<GpsPage> {
                         shape: new RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(100.0),
                         ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        _navigation.navigateToRoute('/live_location');
+                      },
+                      child: Icon(
+                        Icons.play_arrow,
+                        size: 50,
                       ),
                     ),
                   ],

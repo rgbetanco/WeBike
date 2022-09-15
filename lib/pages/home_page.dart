@@ -7,11 +7,11 @@ import 'package:pizarro_app/pages/gps_layout_page.dart';
 import 'package:pizarro_app/pages/gps_page.dart';
 import 'package:pizarro_app/pages/live_broadcast_page.dart';
 import 'package:pizarro_app/pages/live_page1.dart';
+import 'package:pizarro_app/pages/trips_page.dart';
 import 'package:pizarro_app/pages/users_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../services/database_service.dart';
-import 'broadcast_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     GpsLayoutPage(),
     ChatsPage(),
     UsersPage(),
-    LiveOrBroadcastPage(),
+    TripsPage(),
   ];
 
   @override
@@ -78,9 +78,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           BottomNavigationBarItem(
-            label: "Live",
+            label: "Trips",
             icon: Icon(
-              Icons.live_tv_sharp,
+              Icons.map_sharp,
             ),
           ),
         ],

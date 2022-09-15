@@ -42,12 +42,15 @@ class AuthenticationProvider extends ChangeNotifier {
             },
           );
           if (_user.emailVerified == true) {
+            print("Email has been verified, going home");
             _navigationService.removeAndNavigateToRoute('/home');
           } else {
+            print("Email has not been verified, going emailverify page");
             _navigationService.removeAndNavigateToRoute('/emailverify');
           }
         });
       } else {
+        print("Email has not been verified, going login page");
         _navigationService.removeAndNavigateToRoute('/login');
       }
     });
