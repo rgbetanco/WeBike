@@ -12,6 +12,7 @@ import 'package:pizarro_app/providers/authentication_provider.dart';
 import 'package:pizarro_app/services/database_service.dart';
 
 import '../models/trip.dart';
+import '../pages/live_location.dart';
 import '../pages/trips_page.dart';
 import '../services/navigation_service.dart';
 
@@ -29,12 +30,19 @@ class TripPageProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<String?> updateTrip(Trip _trip) async {
+  void goToTripMapPage(Trip _trip) {
+    LiveLocationPage _uTrip = LiveLocationPage(
+      trip: _trip,
+    );
+    _navigation.navigateToPage(_uTrip);
+  }
+
+  Future<void> updateTrip(Trip _trip) async {
     try {
       await _db.updateTrip(
         _trip,
       );
-      return _trip.uid;
+      goToTripMapPage(_trip);
     } catch (de) {
       print(de);
     } catch (e) {

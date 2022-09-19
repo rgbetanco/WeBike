@@ -90,7 +90,7 @@ class TripsPageState extends State<TripsPage> {
                 SizedBox(
                   height: _deviceHeight * 0.02,
                 ),
-                //_goToMap(),
+                _goToMap(),
                 SizedBox(
                   height: _deviceHeight * 0.02,
                 ),
@@ -145,12 +145,16 @@ class TripsPageState extends State<TripsPage> {
     String _subtitleText = "";
     if (_trip.members.isNotEmpty) {
       _subtitleText = _trip.members.first.name;
+      if (_trip.members.length > 1) {
+        _subtitleText += ", " + _trip.members[1].name;
+      }
     }
+
     return CustomListViewTileWithActivity(
       height: _deviceHeight * 0.10,
       title: _trip.title,
       subtitle: _subtitleText,
-      imagePath: "",
+      imagePath: _trip.imageURL,
       isActive: _isActive,
       isActivity: false,
       onTap: (context) {
@@ -180,21 +184,23 @@ class TripsPageState extends State<TripsPage> {
     }
   }
 
-  // Widget _goToMap() {
-  //   return Visibility(
-  //     visible: true,
-  //     child: RoundedButton(
-  //       name: "Go to Map",
-  //       height: _deviceHeight * 0.05,
-  //       width: _deviceWidth * 0.60,
-  //       onPressed: () {
-  //         _nav.navigateToPage(
-  //           LiveLocationPage(
-  //             trip: _selectedTrip,
-  //           ),
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
+  Widget _goToMap() {
+    if (_tripsPageProvider.selectedTrip != null) {
+      return Visibility(
+        visible: _tripsPageProvider.selectedTrip != null,
+        child: RoundedButton(
+          name: "Go to Map",
+          height: _deviceHeight * 0.05,
+          width: _deviceWidth * 0.60,
+          onPressed: () {
+            if (_tripsPageProvider.selectedTrip != null) {
+              _tripsPageProvider.goToTripMapPage();
+            }
+          },
+        ),
+      );
+    } else {
+      return Container();
+    }
+  }
 }

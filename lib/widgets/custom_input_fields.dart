@@ -5,12 +5,14 @@ class CustomTextFormField extends StatelessWidget {
   final String regEx;
   final String hintText;
   final bool obscureText;
+  String? initialValue;
 
   CustomTextFormField({
     required this.onSaved,
     required this.regEx,
     required this.hintText,
     required this.obscureText,
+    this.initialValue,
   });
 
   @override
@@ -33,6 +35,7 @@ class CustomTextFormField extends StatelessWidget {
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.white54),
       ),
+      initialValue: initialValue,
     );
   }
 }

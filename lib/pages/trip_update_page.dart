@@ -62,6 +62,7 @@ class TripUpdatePageState extends State<TripUpdatePage> {
     _db = GetIt.instance.get<DatabaseService>();
     _mux = GetIt.instance.get<MuxService>();
     _navigationService = GetIt.instance.get<NavigationService>();
+
     return _buildUI();
   }
 
@@ -143,6 +144,7 @@ class TripUpdatePageState extends State<TripUpdatePage> {
               regEx: r'.{3,}',
               hintText: 'Title',
               obscureText: false,
+              initialValue: widget.trip.title,
             ),
           ],
         ),

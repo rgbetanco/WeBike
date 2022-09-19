@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_it/get_it.dart';
+import 'package:location/location.dart';
 import 'package:pizarro_app/models/chat_message.dart';
 import 'package:pizarro_app/models/gps_data.dart';
 import 'package:pizarro_app/models/stream_key.dart';
@@ -230,6 +231,19 @@ class DatabaseService {
       _db.collection(USER_COLLECTION).doc(_uid).update(
         {
           "image": imageURL,
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> updateUserLocation(String _uid, LocationData location) async {
+    try {
+      _db.collection(USER_COLLECTION).doc(_uid).update(
+        {
+          "lat": location.latitude,
+          "long": location.longitude,
         },
       );
     } catch (e) {

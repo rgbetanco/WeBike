@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:location/location.dart';
 import 'package:pizarro_app/models/chat.dart';
 import 'package:pizarro_app/models/chat_user.dart';
 import 'package:pizarro_app/models/trip.dart';
@@ -146,5 +147,9 @@ class UsersPageProvider extends ChangeNotifier {
       print("Error creating trip.");
       print(e);
     }
+  }
+
+  void updateUserLocation(String _uid, LocationData location) async {
+    await _database.updateUserLocation(_uid, location);
   }
 }

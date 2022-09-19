@@ -1,13 +1,19 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:get_it/get_it.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
+import 'package:pizarro_app/models/chat_user.dart';
 import 'package:pizarro_app/models/trip.dart';
 import 'package:pizarro_app/providers/authentication_provider.dart';
+import 'package:pizarro_app/providers/users_page_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:pizarro_app/widgets/rounded_marker.dart';
 
+import '../services/database_service.dart';
 import '../widgets/top_bar.dart';
 
 class LiveLocationPage extends StatefulWidget {
@@ -22,12 +28,16 @@ class LiveLocationPage extends StatefulWidget {
 
 class _LiveLocationPageState extends State<LiveLocationPage> {
   LocationData? _currentLocation;
+  late ChatUser member;
   late final MapController _mapController;
 
   late double _deviceHeight;
   late double _deviceWidth;
 
   late AuthenticationProvider _auth;
+  late DatabaseService _db;
+
+  List<Marker> allMarkers = [];
 
   bool _liveUpdate = true;
   bool _permission = false;
@@ -100,36 +110,65 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
     }
   }
 
+  void updateMarkers() {
+    Future.microtask(() {
+      allMarkers.clear();
+      for (var x = 0; x < widget.trip.members.length; x++) {
+        if (widget.trip.members[x].lat != null &&
+            widget.trip.members[x].long != null) {
+          allMarkers.add(
+            Marker(
+              point: LatLng(
+                double.parse(widget.trip.members[x].lat!),
+                double.parse(widget.trip.members[x].long!),
+              ),
+              builder: (context) => const Icon(
+                Icons.circle,
+                color: Colors.red,
+                size: 12,
+              ),
+            ),
+          );
+        }
+      }
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     _deviceHeight = MediaQuery.of(context).size.height;
     _deviceWidth = MediaQuery.of(context).size.width;
     _auth = Provider.of<AuthenticationProvider>(context);
+    _db = GetIt.instance.get<DatabaseService>();
+    member = _auth.user;
     LatLng currentLatLng;
 
     // Until currentLocation is initially updated, Widget can locate to 0, 0
     // by default or store previous location value to show.
     if (_currentLocation != null) {
+      _db.updateUserLocation(member.uid, _currentLocation!);
+      updateMarkers();
       currentLatLng =
           LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!);
     } else {
       currentLatLng = LatLng(0, 0);
     }
 
-    final markers = <Marker>[
-      Marker(
-        width: 24,
-        height: 24,
-        point: currentLatLng,
-        builder: (ctx) => RoundedMarker(
-          name: '王',
-          height: 12,
-          width: 12,
-          color: Colors.blue,
-          onPressed: () async {},
-        ),
-      ),
-    ];
+    // final markers = <Marker>[
+    //   Marker(
+    //     width: 24,
+    //     height: 24,
+    //     point: currentLatLng,
+    //     builder: (ctx) => RoundedMarker(
+    //       name: '王',
+    //       height: 12,
+    //       width: 12,
+    //       color: Colors.blue,
+    //       onPressed: () async {},
+    //     ),
+    //   ),
+    // ];
 
     return Scaffold(
       body: Container(
@@ -170,7 +209,8 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'dev.fleaflet.flutter_map.example',
                   ),
-                  MarkerLayer(markers: markers),
+                  MarkerLayer(
+                      markers: allMarkers.sublist(0, allMarkers.length)),
                 ],
               ),
             ),

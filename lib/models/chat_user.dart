@@ -1,3 +1,5 @@
+import 'package:location/location.dart';
+
 class ChatUser {
   final String uid;
   final String name;
@@ -6,6 +8,8 @@ class ChatUser {
   final String playbackId;
   final String streamKey;
   late DateTime lastActive;
+  late String? lat;
+  late String? long;
 
   ChatUser({
     required this.uid,
@@ -15,6 +19,8 @@ class ChatUser {
     required this.playbackId,
     required this.streamKey,
     required this.lastActive,
+    required this.lat,
+    required this.long,
   });
 
   factory ChatUser.fromJSON(Map<String, dynamic> _json) {
@@ -26,6 +32,8 @@ class ChatUser {
       playbackId: _json["playbackId"],
       streamKey: _json["streamKey"],
       lastActive: _json["last_active"].toDate(),
+      lat: _json["lat"],
+      long: _json["long"],
     );
   }
 
@@ -37,6 +45,8 @@ class ChatUser {
       "image": imageURL,
       "payloadId": playbackId,
       "streamKey": streamKey,
+      "lat": lat,
+      "long": long,
     };
   }
 

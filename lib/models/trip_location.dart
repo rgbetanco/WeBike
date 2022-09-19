@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:location/location.dart';
 
+// DONT USE THIS CLASS
 class TripLocation {
   final String senderID;
   final LocationData location;
