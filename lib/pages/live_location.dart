@@ -84,9 +84,11 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
                 // If Live Update is enabled, move map center
                 if (_liveUpdate) {
                   _mapController.move(
-                      LatLng(_currentLocation!.latitude!,
-                          _currentLocation!.longitude!),
-                      _mapController.zoom);
+                    LatLng(_currentLocation!.latitude!,
+                        _currentLocation!.longitude!),
+                    _mapController.zoom,
+                  );
+                  updateMarkers();
                 }
               });
             }
@@ -114,8 +116,13 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
     Future.microtask(() {
       allMarkers.clear();
       for (var x = 0; x < widget.trip.members.length; x++) {
+        //TODO
+        //call db to get current location of all members
+
         if (widget.trip.members[x].lat != null &&
             widget.trip.members[x].long != null) {
+          print(
+              "Adding marker ${x} : LAT - ${widget.trip.members[x].lat} , LONG - ${widget.trip.members[x].long}");
           allMarkers.add(
             Marker(
               point: LatLng(
@@ -124,14 +131,13 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
               ),
               builder: (context) => const Icon(
                 Icons.circle,
-                color: Colors.red,
+                color: Colors.blue,
                 size: 12,
               ),
             ),
           );
         }
       }
-      setState(() {});
     });
   }
 
@@ -143,16 +149,21 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
     _db = GetIt.instance.get<DatabaseService>();
     member = _auth.user;
     LatLng currentLatLng;
-
     // Until currentLocation is initially updated, Widget can locate to 0, 0
-    // by default or store previous location value to show.
     if (_currentLocation != null) {
       _db.updateUserLocation(member.uid, _currentLocation!);
-      updateMarkers();
+
       currentLatLng =
           LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!);
     } else {
-      currentLatLng = LatLng(0, 0);
+      if (member.lat != "null" && member.long != "null") {
+        currentLatLng = LatLng(
+          double.parse(member.lat!),
+          double.parse(member.long!),
+        );
+      } else {
+        currentLatLng = LatLng(0, 0);
+      }
     }
 
     // final markers = <Marker>[

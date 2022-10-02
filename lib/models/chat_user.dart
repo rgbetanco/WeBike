@@ -32,8 +32,8 @@ class ChatUser {
       playbackId: _json["playbackId"],
       streamKey: _json["streamKey"],
       lastActive: _json["last_active"].toDate(),
-      lat: _json["lat"],
-      long: _json["long"],
+      lat: _json["lat"].toString(),
+      long: _json["long"].toString(),
     );
   }
 
