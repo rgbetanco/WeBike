@@ -21,6 +21,7 @@ const String LOCATION_COLLECTION = "Locations";
 const String MESSAGE_COLLECTION = "messages";
 const String MUX_COLLECTION = "Mux";
 const String GPS_COLLECTION = "GPS";
+const String MEMBERS_COLLECTION = "members";
 
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -211,6 +212,11 @@ class DatabaseService {
         .doc(_uid)
         .collection(GPS_COLLECTION)
         .get();
+  }
+
+  Future<List> getMemberLocation(String _uid) async {
+    var user = await _db.collection(USER_COLLECTION).doc(_uid).get();
+    return [user.get("lat").toString(), user.get("long").toString()];
   }
 
   Future<void> updateTrip(Trip _trip) async {

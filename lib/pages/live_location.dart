@@ -113,12 +113,14 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
   }
 
   void updateMarkers() {
-    Future.microtask(() {
+    Future.microtask(() async {
       allMarkers.clear();
       for (var x = 0; x < widget.trip.members.length; x++) {
         //TODO
         //call db to get current location of all members
-
+        List latlog = await _db.getMemberLocation(widget.trip.members[x].uid);
+        widget.trip.members[x].lat = latlog[0];
+        widget.trip.members[x].long = latlog[1];
         if (widget.trip.members[x].lat != null &&
             widget.trip.members[x].long != null) {
           print(
